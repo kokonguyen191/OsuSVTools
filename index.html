@@ -1,45 +1,118 @@
-<html>
-
 <header>
-  <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  <html>
   <link href='style.css' rel='stylesheet' type='text/css'>
-  <SCRIPT src="main.js"></SCRIPT>
+  <link href='flaticon/flaticon.css' rel='stylesheet' type='text/css'>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="main.js"></script>
 </header>
 
 <body>
-  <h1>Osu Mania SV tools</h1>
-  <hr/>
+  <a id="togglebutton" onClick="resetSidebar()">
+      <i class="flaticon-expand"></i>
+  </a>
+  <div id="sidebar">
+    <div id="split_bar"></div>
+    <h2><strong>Quick toolbar</strong></h2>
+    <hr />
+    <h3><strong>Get offset</strong></h3>
+    <form>
+      Copy timing point or a note here<span title="00:00:616 (616|2) -
+00:01:942 -
+1840,329.67032967033,4,2,1,35,1,0
+64,192,32829,1,0,0:0:0:0:
+all are valid inputs."><sup>[?]</sup></span>
+      <br />
+      <input type="text" id="get_offset_in">
+      <br />
+      <input type="button" value="Extract and copy offset to clipboard" onClick="execExtractOffset()">
+      <br />
+      <input type="text" id="get_offset_out" onClick="this.select();" readonly>
+    </form>
+    <hr />
 
-  <!-- Tool template -->
-  <h3><strong>Tool name</strong></h3>
-  <h4>Description</h4>
-  <p>Some description here</p>
-  <form>
-    <table>
-      <tr>
-        <td>Option 1:</td>
-        <td><input type="text" id="idt1"></td>
-      </tr>
-      <tr>
-        <td>Option 2:</td>
-        <td><input type="text" id="idt2"></td>
-      </tr>
-      <tr>
-        <td>Checkbox option:</td>
-        <td><input type="checkbox" id="idcb1"></td></tr>
-    </table>
+    <h3><strong>Offset beatmap<span title="Move the whole beatmap by given time. Can take a negative float as parameter."><sup>[?]</sup></span></strong></h3>
+    <form>
+      Copy a whole beatmap / timing points / notes here. <input type="button" value="Example" onClick="beatmapExample()">
+      <br />
+      <textarea id="move_all_in" cols="30"></textarea>
+      <div class="table">
+        <div class="table_row">
+          <div class="table_left">Offset (ms):</div>
+          <div class="table_right"><input type="text" id="offsetAmt" size="5"></div>
+        </div>
+      </div>
+      <h3>Output</h3>
+      <textarea id="move_all_out" cols="30" onClick="this.select();" readonly></textarea>
+      <br />
+      <input type="button" value="Offset everything" onClick="offsetAll('f')">
+    </form>
+    <hr />
+  </div>
 
-    <h5>Big text input</h5>
-    <br/>
-    <textarea id="bigtext1" rows="10" cols="80"></textarea>
+  <div id="main">
+    <h1>Osu Mania SV tools</h1>
+    <hr/>
 
-    <h5>Output</h5>
-    <br/>
-    <textarea id="output" rows="10" cols="80"></textarea>
-    <br/>
-    <input type="button" value="executebtn" onClick="execjs()">
-  </form>
-  <!-- End of template -->
+    <!-- Tool template -->
+    <h3><strong>Normalize / Remove SVs</strong></h3>
+    <h4>Description</h4>
+    <p>You are recommended to normalize right after you finish timing a song as normalization will remove all SVs in the process. Normalization scales a segment of timing points to have the same scroll speed as the given tempo. If no tempo is given, the
+      tool will attempt to auto-detect the main BPM.</p>
+    <form>
+      <div class="table">
+        <div class="table_row">
+          <div class="table_left">Normalize all timing points to this tempo:</div>
+          <div class="table_right"><input type="text" id="norm_bpm"></div>
+        </div>
+      </div>
+
+      <h3>Input</h3>
+      <textarea id="norm_in" rows="10" cols="80"></textarea>
+
+      <h3>Output</h3>
+      <textarea id="norm_out" rows="10" cols="80" readonly></textarea>
+      <br />
+      <input type="button" value="Remove SVs" onClick="removeSVs()"> <input type="button" value="Normalize" onClick="nmlize()">
+    </form>
+    <hr />
+    <!-- End of template -->
+
+    <!-- Tool template -->
+    <h3><strong>Tool name</strong></h3>
+    <h4>Description</h4>
+    <p>Some description here</p>
+    <form>
+      <table>
+        <div class="table_row">
+          <div class="table_left">Option 1:</div>
+          <div class="table_right"><input type="text" id="idt1"></div>
+        </div>
+        <br />
+        <div class="table_row">
+          <div class="table_left">Option 2:</div>
+          <div class="table_right"><input type="text" id="idt2"></div>
+        </div>
+        <br />
+        <div class="table_row">
+          <div class="table_left">Checkbox option:</div>
+          <div class="table_right"><input type="checkbox" id="idcb1"></div>
+        </div>
+      </table>
+
+      <h3>Big text input</h3>
+      <textarea id="bigtext1" rows="10" cols="80"></textarea>
+
+      <h3>Output</h3>
+      <textarea id="output" rows="10" cols="80" readonly></textarea>
+      <br />
+      <input type="button" value="executebtn" onClick="execjs()">
+    </form>
+    <hr />
+    <!-- End of template -->
+
+  </div>
+  Font generated by <a href="http://www.flaticon.com">flaticon.com</a>.
+  Under <a href="http://creativecommons.org/licenses/by/3.0/">CC</a>: <a data-file="001-expand" href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>
 </body>
 
 </html>
