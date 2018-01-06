@@ -44,6 +44,7 @@
   display: block;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: -1px 1px 6px 0px #333;
 }
 
 /* Content */
@@ -51,6 +52,7 @@
 body {
   font-family: 'Nunito', sans-serif;
   width: 100%;
+  overflow-x: hidden;
 }
 
 hr {
@@ -70,11 +72,36 @@ h2, h3, h4 {
 p {
   margin-left: 20%;
   margin-right: 20%;
+  text-align: justify;
 }
 
 form {
   text-align: center;
 }
+
+sup {
+  font-size: 10px;
+}
+
+ul {
+  margin-left: 20%;
+  margin-right: 20%;
+}
+
+li {
+  text-align: left;
+  padding-left: 25px
+}
+
+.example {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.help {
+  cursor: help;
+}
+
 
 /* Table divs */
 
