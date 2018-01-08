@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $(document).ready(function(e) {
+	// Sidebar interaction
 	$('#split_bar').mousedown(function(e0) {
 		e0.preventDefault();
 		$(document).mousemove(function(e) {
@@ -20,6 +21,8 @@ $(document).ready(function(e) {
 		$(document).unbind('mousemove');
 	});
 
+	// Code input interaction
+	// Borrowed from https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
 	var textareas = $('textarea');
 	var count = textareas.length;
 	for (var i = 0; i < count; i++) {
@@ -32,6 +35,28 @@ $(document).ready(function(e) {
 			}
 		}
 	}
+
+	// Hide show Advanced
+	$("#slider1").click(function() {
+		$('#advanced1').slideToggle('slow');
+	});
+	$("#slider2").click(function() {
+		$('#advanced2').slideToggle('slow');
+	});
+
+	// Auto execute when typing
+	$("#stutter_cal_time,#stutter_cal_speed").keyup(function() {
+		stutterCal();
+	});
+	$("#get_speed_in").keyup(function() {
+		var rawSpeed = parseFloat($("#get_speed_in").val());
+		if (rawSpeed < 0) {
+			$("#get_speed_out").val(100 / rawSpeed);
+		} else if (rawSpeed > 0) {
+			$("#get_speed_out").val(60000 / rawSpeed);
+		}
+	});
+
 });
 
 function resetSidebar() {
@@ -50,7 +75,6 @@ function resetSidebar() {
 	}, 500);
 }
 
-// Borrowed from https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,13 +136,19 @@ class TimingPoint {
 			for (var i = 0; i < 8; i++) {
 				tpArr[i] = parseFloat(tpArr[i]);
 			}
+			return new TimingPoint(...tpArr);
 		}
-		return new TimingPoint(...tpArr);
+		return undefined;
 	}
 
 	// Return a printable timing point string
 	toString() {
 		return `${this.offset},${this.speed},${this.meter},${this.sampleSet},${this.sampleIdx},${this.volume},${this.inherited},${this.kiai}`;
+	}
+
+	// Return a printable timing point string without offset
+	toStringWithoutOffset() {
+		return `${this.speed},${this.meter},${this.sampleSet},${this.sampleIdx},${this.volume},${this.inherited},${this.kiai}`;
 	}
 }
 
@@ -138,7 +168,7 @@ function evalId(id) {
 }
 
 // Generate an array that contains all offsets to use
-function generateListOfOffsets(input) {
+function generateListOfOffsets(input, countLn) {
 	var resultArr = [];
 	if (input.startsWith("@")) { // Special format
 		var specialFormatArr = input.split(",");
@@ -172,28 +202,46 @@ function generateListOfOffsets(input) {
 		}
 	} else if (input.indexOf(",") !== -1) { // List of notes copied from file
 		var lines = input.split("\n");
-		var cur = -Infinity;
-		for (var i = 0, len = lines.length; i < len; i++) {
-			var nextOffset = parseInt(lines[i].split(",")[2]);
-			if (cur < nextOffset) {
-				cur = nextOffset;
-				resultArr.push(nextOffset);
+		if (countLn) { // Count end of LN as offsets, only work in this format
+			var hashSet = {};
+			for (var i = 0, len = lines.length; i < len; i++) {
+				if (lines[i] != "") {
+					var splitted = lines[i].split(/[,:]/);
+					hashSet[parseInt(splitted[2])] = true;
+					if (splitted[5] != "0") {
+						hashSet[parseInt(splitted[5])] = true;
+					}
+				}
+			}
+			var keys = Object.keys(hashSet).map(Number);
+			resultArr = keys.sort();
+		} else {
+			var cur = -Infinity;
+			for (var i = 0, len = lines.length; i < len; i++) {
+				var nextOffset = parseInt(lines[i].split(",")[2]);
+				if (cur < nextOffset) {
+					cur = nextOffset;
+					resultArr.push(nextOffset);
+				}
 			}
 		}
 	} else { // List of offets or some other illegal formats
 		var lines = input.split("\n");
 		for (var i = 0, len = lines.length; i < len; i++) {
-			resultArr.push(parseFloat(lines[i]));
+			if (lines[i] != "") {
+				resultArr.push(parseFloat(lines[i]));
+			}
 		}
 	}
 	return resultArr;
 }
 
 // Generate all inherited SVs with the given functions and values
-function generateInheritedSvs(offsetsArr, cycleRule, scaleRule, meterRule, ssetRule, sidxRule, volRule, kiaiRule, scaleRuleSingleValue, meterRuleSingleValue, ssetRuleSingleValue, sidxRuleSingleValue, volRuleSingleValue, kiaiRuleSingleValue, finalSV) {
+function generateSvs(offsetsArr, cycleRule, scaleRule, meterRule, ssetRule, sidxRule, volRule, kiaiRule, scaleRuleSingleValue, meterRuleSingleValue, ssetRuleSingleValue, sidxRuleSingleValue, volRuleSingleValue, kiaiRuleSingleValue, finalSV, mainBpm) {
 	var tpObjArr = [];
 	var len = offsetsArr.length;
 	var totalDuration = offsetsArr[len - 1] - offsetsArr[0];
+	var mainMsPB = mainBpm ? 60000 / parseFloat(mainBpm) : undefined;
 
 	// Iterate through all cycles
 	for (var i = 0; i < len - 1; i++) {
@@ -202,7 +250,7 @@ function generateInheritedSvs(offsetsArr, cycleRule, scaleRule, meterRule, ssetR
 		var cycleSVs = cycleRule(duration);
 
 		// Pre-calculate all values for the start offset
-		var firstOffset = offsetsArr[i];
+		var firstOffset = offsetsArr[i] - offsetsArr[0];
 		var firstScale = scaleRule(firstOffset, totalDuration);
 		var firstMeter = meterRule(firstOffset, totalDuration);
 		var firstSset = ssetRule(firstOffset, totalDuration);
@@ -214,21 +262,56 @@ function generateInheritedSvs(offsetsArr, cycleRule, scaleRule, meterRule, ssetR
 		for (var j = 0, svNum = cycleSVs.length; j < svNum; j++) {
 			var offset = firstOffset + cycleSVs[j][0];
 			var speed, meter, sset, sidx, vol, kiai;
+			if (meterRuleSingleValue) {
+				meter = firstMeter;
+			} else {
+				meter = meterRule(offset, totalDuration);
+			}
+			if (ssetRuleSingleValue) {
+				sset = firstSset;
+			} else {
+				sset = ssetRule(offset, totalDuration);
+			}
+			if (sidxRuleSingleValue) {
+				sidx = firstSidx;
+			} else {
+				sidx = sidxRule(offset, totalDuration);
+			}
+			if (volRuleSingleValue) {
+				vol = firstVol;
+			} else {
+				vol = volRule(offset, totalDuration);
+			}
+			if (kiaiRuleSingleValue) {
+				kiai = firstKiai;
+			} else {
+				kiai = kiaiRule(offset, totalDuration);
+			}
 
-			if (scaleRuleSingleValue) { speed = -100 / (cycleSVs[j][1] * firstScale); } else { speed = -100 / (cycleSVs[j][1] * scaleRule(offset, duration)); }
-			if (meterRuleSingleValue) { meter = firstMeter; } else { meter = meterRule(offset, duration); }
-			if (ssetRuleSingleValue) { sset = firstSset; } else { sset = ssetRule(offset, duration); }
-			if (sidxRuleSingleValue) { sidx = firstSidx; } else { sidx = sidxRule(offset, duration); }
-			if (volRuleSingleValue) { vol = firstVol; } else { vol = volRule(offset, duration); }
-			if (kiaiRuleSingleValue) { kiai = firstKiai; } else { kiai = kiaiRule(offset, duration); }
-
-			tpObjArr.push(new TimingPoint(offset, speed, meter, sset, sidx, vol, 0, kiai));
+			if (mainMsPB) {
+				if (scaleRuleSingleValue) {
+					speed = mainMsPB / (cycleSVs[j][1] * firstScale);
+				} else {
+					speed = mainMsPB / (cycleSVs[j][1] * scaleRule(offset, totalDuration));
+				}
+				tpObjArr.push(new TimingPoint(offset + offsetsArr[0], speed, meter, sset, sidx, vol, 1, kiai));
+			} else {
+				if (scaleRuleSingleValue) {
+					speed = -100 / (cycleSVs[j][1] * firstScale);
+				} else {
+					speed = -100 / (cycleSVs[j][1] * scaleRule(offset, totalDuration));
+				}
+				tpObjArr.push(new TimingPoint(offset + offsetsArr[0], speed, meter, sset, sidx, vol, 0, kiai));
+			}
 		}
 	}
 
 	if (finalSV != "") {
-		var finalOffset = offsetsArr[len - 1];
-		tpObjArr.push(new TimingPoint(finalOffset, -100 / parseFloat(finalSV), meterRule(finalOffset, totalDuration), ssetRule(finalOffset, totalDuration), sidxRule(finalOffset, totalDuration), volRule(finalOffset, totalDuration), 0, kiaiRule(finalOffset, totalDuration)));
+		if (mainMsPB) {
+			tpObjArr.push(new TimingPoint(offsetsArr[len - 1], mainMsPB / parseFloat(finalSV), meterRule(totalDuration, totalDuration), ssetRule(totalDuration, totalDuration), sidxRule(totalDuration, totalDuration), volRule(totalDuration, totalDuration), 1, kiaiRule(totalDuration, totalDuration)));
+		} else {
+			tpObjArr.push(new TimingPoint(offsetsArr[len - 1], -100 / parseFloat(finalSV), meterRule(totalDuration, totalDuration), ssetRule(totalDuration, totalDuration), sidxRule(totalDuration, totalDuration), volRule(totalDuration, totalDuration), 0, kiaiRule(totalDuration, totalDuration)));
+		}
 	}
 	return tpObjArr;
 }

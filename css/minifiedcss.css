@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito');#split_bar{background-color:transparent;height:100%;float:left;width:3px;cursor:col-resize}
+#sidebar{height:100%;width:25%;position:fixed;z-index:1;top:0;right:0;box-shadow:-1px 0px 5px 0px #333;background-color:aliceblue;overflow-x:hidden;padding-top:20px}
+#main{margin-right:25%;padding:0px 10px;background:url(../static/bg.png)no-repeat;background-attachment:fixed}
+#togglebutton{background-color:aliceblue;right:25%;padding:5px 5px;height:32px;width:32px;font-size:32px;z-index:1;margin-left:-7px;position:fixed;top:0px;overflow:hidden;border-bottom-left-radius:10px;text-decoration:none;display:block;font-weight:700;cursor:pointer;box-shadow:-1px 1px 6px 0px #333}
+body{font-family:'Nunito',sans-serif;width:100%;overflow-x:hidden}
+hr{border:0;height:1px;background-image:linear-gradient(to right,rgba(0,0,0,0),#333,rgba(0,0,0,0))}
+h1{padding-left:5%}
+h2,h3,h4{text-align:center}
+p{margin-left:20%;margin-right:20%;text-align:justify}
+form{text-align:center}
+sup{font-size:10px}
+ul{margin-left:20%;margin-right:20%}
+li{text-align:left;padding-left:25px}
+textarea{tab-size:2}.example{text-decoration:underline;cursor:pointer}.help{cursor:help}.table_row{display:inline-block}.table_left{width:auto;padding:10px;float:left}.table_right{padding:10px;float:right}.switch{position:relative;display:inline-block;width:60px;height:34px}.switch input{display:none}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;-webkit-transition:.4s;transition:.4s}.slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background-color:white;-webkit-transition:.4s;transition:.4s}
+input:checked+.slider{background-color:#2196F3}
+input:focus+.slider{box-shadow:0 0 1px #2196F3}
+input:checked+.slider:before{-webkit-transform:translateX(26px);-ms-transform:translateX(26px);transform:translateX(26px)}.advanced{display:none;overflow-y:hidden}.hideable-container{overflow-y:hidden}.toggle-header{cursor:pointer}

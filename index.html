@@ -1,14 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <header>
-  <link href='style.css' rel='stylesheet' type='text/css'>
   <link href='flaticon/flaticon.css' rel='stylesheet' type='text/css'>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script src="utils.js"></script>
-  <script src="main.js"></script>
-  <script src="sidebar.js"></script>
-  <script src="examples.js"></script>
+  <link href='css/minifiedcss.css' rel='stylesheet' type='text/css'>
+  <script src="js/minifiedjs.js"></script>
 </header>
 
 <body>
@@ -17,7 +14,24 @@
     <div id="split_bar"></div>
 
     <h2><strong>Quick toolbar</strong></h2>
+    <form>
+      <input type="button" value="Remove all inputs" onclick="removeAll()">
+    </form>
     <hr/>
+
+    <h3><strong>Convert BPM/speed to .osu format</strong></h3>
+    <form>
+      <div class="table_row">
+        <div class="table_left">Input<span class="help" title="Scroll speed is negative, tempo is positive."><sup>[?]</sup></span>:</div>
+        <div class="table_right"><input type="text" id="get_speed_in" size="5"></div>
+      </div>
+      <div class="table_row">
+        <div class="table_left">Output:</div>
+        <div class="table_right"><input type="text" id="get_speed_out" size="5"></div>
+      </div>
+    </form>
+    <hr/>
+
     <h3><strong>Get offset</strong></h3>
     <form>
       Copy timing point or a note here<span class="help" title="00:00:616 (616|2) -
@@ -79,52 +93,66 @@ all are valid inputs."><sup>[?]</sup></span>
   <!--------------------------------------------------------------------------------------------------------------->
 
   <div id="main">
-    <h1>Osu Mania SV tools</h1>
+    <h1>Osu Mania SV tool box</h1>
     <hr/>
-    <h4>Technical stuff</h4>
-    <p>
-      Below are some technicalities on how SV works. You can skip all the details and trial-and-error to find
-      the suitable values for your SVs. But understanding the underlying mechanism will allow you to
-      be more creative with SVs.
-    </p>
-    <p>
-      First, mania SVs are sequential SVs, unlike taiko SVs, which means if note A comes after note B, you
-      will always see A before B, no matter what you do. On the other hand in taiko, you can have a note
-      from the end of the beatmap hanging around the screen right from the beginning.
-    </p>
-    <p>
-      There is only one main tempo for a beatmap (duh obviously) which usually belongs to the longest timing
-      point segment.
-      <span class="help" title="I don't know if having more notes makes a tempo more likely to become the main tempo or not."><sup>[?]</sup></span>
-    </p>
-    <p>
-      A beat is about \(\frac {4.375 \times slider\_velocity \times scroll\_speed \times osu\_height}{main\_bpm}\)
-      long in pixels.<span class="help" title="Based on my extrapolated result."><sup>[?]</sup></span>      Red (uninherited) timing points create a new barline <i>except</i> when they are less than 2ms
-      apart. Take note of this when you create SV effects with barlines.
-    </p>
-    <br />
-    <h4>Disclaimer</h4>
-    <p>
-      I take no responsibility or liability for any damages arising from use of any tools provided here. Also
-      there will be a lot of rounding errors but they won't affect your map.
-    </p>
-    <br />
-    <hr />
-    <!-- Tool template -->
-    <h3><strong>Normalize / Remove SVs</strong></h3>
-    <h4>Description</h4>
-    <p>
-      You are recommended to normalize right after you finish timing a song as normalization will remove all
-      SVs in the process. Normalization scales a segment of timing points to have the same scroll speed
-      as the given tempo. If no tempo is given, the tool will attempt to auto-detect the main BPM.</p>
-    <form>
-      <div class="table_row">
-        <div class="table_left">Normalize all timing points to this tempo:</div>
-        <div class="table_right"><input type="text" id="norm_bpm"></div>
-      </div>
+    <h3 class="toggle-header" onclick="$('#preface').slideToggle('slow');"><strong>Preface</strong></h3>
+    <div class="hideable-container" id="preface">
+      <h4>Technical stuff</h4>
+      <p>
+        Below are some technicalities on how SV works. You can skip all the details and trial-and-error to find
+        the suitable values for your SVs. But understanding the underlying mechanism will allow you to
+        be more creative with SVs.
+      </p>
+      <p>
+        First, mania SVs are sequential SVs, unlike taiko SVs, which means if note A comes before note B, you
+        will always see A before B, no matter what you do. On the other hand in taiko, you can have a
+        note from the end of the beatmap hanging around on the screen right from the beginning.
+      </p>
+      <p>
+        There is only one main tempo for a beatmap which usually belongs to the longest timing point segment.
+        <span class="help" title="I don't know if having more notes makes a tempo more likely to become the main tempo or not."><sup>[?]</sup></span>
+      </p>
+      <p>
+        A beat is about \(\frac {4.375 \times slider\_velocity \times scroll\_speed \times osu\_height}{main\_bpm}\)
+        long in pixels.<span class="help" title="Based on my extrapolated result."><sup>[?]</sup></span>
+      </p>
+      <p>
+        Basic understanding of the <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+          target="blank">.osu format</a>, especially the timing points will help.
+      </p>
+      <h4>Disclaimer</h4>
+      <p>
+        I take no responsibility or liability for any damages arising from use of any tools provided here. Also
+        there will be a lot of rounding errors but they won't affect your map.
+      </p>
 
-      <h3>Input</h3>
-      <textarea id="norm_in" rows="10" cols="80">100,-100,4,2,1,20,0,1
+      <h4>Note</h4>
+      <p>
+        Some of the input boxes in these tools follow very strict formats. Please read the instructions first
+        before attempting to use them. If you see nothing in your output box after you press any buttons,
+        there's high chance you forgot to fill some boxes or you filled incorrectly. Only boxes that
+        are explicitly said to be optional can be ignored.
+      </p>
+    </div>
+    <hr />
+
+
+    <!-- Tool template -->
+    <h3 class="toggle-header" onclick="$('#nml-rmsv').slideToggle('slow');"><strong>Normalize / Remove SVs</strong></h3>
+    <div class="hideable-container" id="nml-rmsv">
+      <h4>Description</h4>
+      <p>
+        You are recommended to normalize right after you finish timing a song as normalization will remove all
+        SVs in the process. Normalization scales a segment of timing points to have the same scroll speed
+        as the given tempo. If no tempo is given, the tool will attempt to auto-detect the main BPM.</p>
+      <form>
+        <div class="table_row">
+          <div class="table_left">Normalize all timing points to this tempo:</div>
+          <div class="table_right"><input type="text" id="norm_bpm"></div>
+        </div>
+
+        <h4>Input</h4>
+        <textarea id="norm_in" rows="10" cols="80">100,-100,4,2,1,20,0,1
 1000,200,4,2,1,20,1,0
 22222,-100,4,2,1,20,0,1
 33333,-100,4,2,1,20,0,0
@@ -133,289 +161,629 @@ all are valid inputs."><sup>[?]</sup></span>
 75555,-10,4,2,1,20,0,0
 12000,200,4,2,1,20,1,0</textarea>
 
-      <h3>Output</h3>
-      <textarea id="norm_out" rows="10" cols="80" readonly="readonly"></textarea>
-      <br/>
-      <input type="button" value="Remove SVs" onclick="removeSVs()">
-      <input type="button" value="Normalize" onclick="nmlize()">
-    </form>
-    <br />
+        <h4>Output</h4>
+        <textarea id="norm_out" rows="10" cols="80" readonly="readonly"></textarea>
+        <br/>
+        <input type="button" value="Remove SVs" onclick="removeSVs()">
+        <input type="button" value="Normalize" onclick="nmlize()">
+      </form>
+      <br />
+    </div>
     <hr/>
     <!-- End of template -->
 
     <!-- Tool template -->
-    <h3><strong>Stuttering SVs</strong></h3>
-    <h4>Description</h4>
-    <p>
-      Stuttering SVs are a series of speedup then slowdown or slowdown then speedup, and optionally, 1.0x speed
-      at last. Roughly most SVs are a variation of stuttering SVs.
-    </p>
-    <p>
-      Usually you need to normalize stuttering SVs. For example, if A and B are 120 pixels apart at 1.0x speed,
-      they still need to be 120 px aparts after you apply the SVs. However, you can be creative and break
-      this rule. Your choice.
-    </p>
-    <p>
-      There are four points of interest in a series of stuttering SVs: the start point (speedup or slowdown),
-      the transition point (slowdown or speedup), the normalize point (1.0x), the end point. These four
-      points respectively are at offset \(t_1\), \(t_2\), \(t_3\), \(t_4\). Let \(T_a=t_2-t_1\) and \(T_b=t_3-t_2\)
-      be the amount of time that you speedup or slowdown, \(v_a\) and \(v_b\) be the speedup or slowdown
-      slider velocity (if <strong>a</strong> is speedup then <strong>b</strong> must be slowdown
-      and vice versa). Then the apparent length of the \(t_1 \rightarrow t_3\) segment is $$T_a\times
-      v_a + T_b\times v_b$$ Therefore, if you want to normalize the stuttering SVs,$$T_a\times v_a +
-      T_b\times v_b = T_a+T_b$$
-    </p>
-    <p>
-      In the form below, fill in the speedup / slowdown speed for \(v_a\) and \(v_b\) as a decimal in \([0.01,10]\),
-      the time duration for \(T_a\) and \(T_b\) in ms if you don't tick the checkbox. If you use both
-      checkboxes, \(T_a\) and \(T_b\) take a decimal in \((0,1)\) and \(T_a+T_b\leq 1\). If you use only
-      one checkbox, I don't know what will happen. You're free to try.
-    </p>
-    <p>
-      Fill \(T_a\) <strong>or</strong> \(T_b\) with -1 to make \(T_a+T_b=t_4-t_1\).
-    </p>
-    <form>
-      <div class="table_row">
-        <div class="table_left">\(v_a:\)</div>
-        <div class="table_right"><input type="text" id="stutter_1_v" size="5"></div>
-      </div>
-      <div class="table_row">
-        <div class="table_left">\(T_a:\)</div>
-        <div class="table_right"><input type="text" id="stutter_1_t" size="7"></div>
-      </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">Use fraction instead of fixed time duration for \(T_a\)</div>
-        <div class="table_right"><input type="checkbox" id="stutter_1_cb"></div>
-      </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">\(v_b:\)</div>
-        <div class="table_right"><input type="text" id="stutter_2_v" size="5"></div>
-      </div>
-      <div class="table_row">
-        <div class="table_left">\(T_b:\)</div>
-        <div class="table_right"><input type="text" id="stutter_2_t" size="7"></div>
-      </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">Use fraction instead of fixed time duration for \(T_b\)</div>
-        <div class="table_right"><input type="checkbox" id="stutter_2_cb"></div>
-      </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">Overall rate (usually 1 for normalized SVs):</div>
-        <div class="table_right"><input type="text" placeholder="1" id="stutter_0_v" size="7"></div>
-      </div>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Final SV (optional):</div>
-        <div class="table_right"><input type="text" id="stutter_final_v" size="7"></div>
-      </div>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Other timing point details<span class="help" title="Meter, sample set, sample index, volume, kiai
-          in x,x,x,x,x format. If no input is given,
-          4,2,1,40,0 will be used."><sup>[?]</sup></span> (optional):</div>
-        <div class="table_right"><input type="text" placeholder="4,2,1,40,0" id="stutter_others" size="10"></div>
-      </div>
-      <br />
+    <h3 class="toggle-header" onclick="$('#copier').slideToggle('slow');"><strong>SVs copier</strong></h3>
+    <div class="hideable-container" id="copier">
+      <h4>Description</h4>
+      <p>This tool will duplicate a segment of timing points to all offsets given. Please ensure that you
+        will not create any unwanted side effects that could happen due to the SV segment having too
+        long duration or the offsets given are too dense.</p>
+      <form>
+        <h4>SVs to copy</h4>
+        <p>
+          Put the timing points you want to duplicate here.
+        </p>
+        <textarea id="copier_svs" rows="10" cols="80">1234,-10,4,2,1,20,0,0
+1244,-300,4,2,1,20,0,0
+1334,-100,4,2,1,20,0,0</textarea>
 
-      <h3>Input</h3>
+        <h4>Offsets input</h4>
+        <p>
+          This box takes one of the formats below as valid inputs:
+        </p>
+        <ul style="list-style-type:disc">
+          <li>A list of offsets in ms in ascending order, each offset in one line (most straightforward but
+            requires some pre-processing on your side). <span class="example" onclick="copierEg1()">Example</span>.</li>
+          <li>A list of notes, either copied from beatmaps in <i>x,x,x,x,x,x</i> format or from osu! in <i>00:50:000 (x|x,x|x,x|x,...)</i>            format (easiest to do). Notes that have the same offset will be automatically detected so
+            you can copy a chord but the script would still use only one offset. <span class="example"
+              onclick="copierEg2()">Example</span>. Also you can choose whether to count end points of
+            LNs or not. Note that this option is only available for <i>x,x,x,x,x,x</i> format.
+            <span class="example" onclick="copierEg2x()">Example 2</span>.</li>
+          <li>A special format: <i>"mode, start offset, end offset, parameter"</i> without the quotes where
+            <i>mode</i> is a string "@n" or "@i", again, without the quotes. If <i>mode</i> is "@n",
+            then
+            <i>parameter</i> is the number of stuttering SVs. If <i>mode</i> is "i", then <i>parameter</i>            is the duration of one whole series of stuttering SVs. In other words, \(parameter_n\times
+            parameter_i = end - start\). Be careful with rounding errors caused when you use mode "@i".
+            Mode "@n" is recommended. <span class="example" onclick="copierEg3()">Example</span>.
+          </li>
+        </ul>
+        <p>
+          Take notice not to put any extra space, new lines, or any invalid characters at the start of your input.
+          Strictly follow the formats given.
+        </p>
+        <p>
+          Offsets input box for any tool below this point also follows the same formats.
+        </p>
+        <div class="table_row">
+          <div class="table_left">Count LN end points as offsets</div>
+          <div class="table_right"><input type="checkbox" id="copier_ln"></div>
+        </div>
+        <br/>
+        <textarea id="copier_input" rows="10" cols="80"></textarea>
+
+        <h4>Output</h4>
+        <textarea id="copier_output" rows="10" cols="80" readonly="readonly"></textarea>
+        <br/>
+        <input type="button" value="Duplicate SVs" onclick="copySvs()">
+      </form>
+      <br />
+    </div>
+    <hr/>
+    <!-- End of template -->
+
+    <!-- Tool template -->
+    <h3 class="toggle-header" onclick="$('#stutter').slideToggle('slow');"><strong>Stuttering SVs</strong></h3>
+    <div class="hideable-container" id="stutter">
+      <h4>Description</h4>
       <p>
-        This box takes one of the formats below as valid inputs:
+        Stuttering SVs are a series of speedup then slowdown or slowdown then speedup, and optionally, 1.0x speed
+        at last.
+      </p>
+      <p>
+        Usually you need to normalize stuttering SVs. For example, if A and B are 120 pixels apart at 1.0x speed,
+        they still need to be 120 px aparts after you apply the SVs. However, you can be creative and
+        break this rule. Your choice.
+      </p>
+      <p>
+        There are four points of interest in a series of stuttering SVs: the start point (speedup or slowdown),
+        the transition point (slowdown or speedup), the normalize point (1.0x), the end point. These
+        four points respectively are at offset \(t_1\), \(t_2\), \(t_3\), \(t_4\). Let \(T_a=t_2-t_1\)
+        and \(T_b=t_3-t_2\) be the amount of time that you speedup or slowdown, \(v_a\) and \(v_b\) be
+        the speedup or slowdown slider velocity (if <strong>a</strong> is speedup then <strong>b</strong>        must be slowdown and vice versa). Then the apparent length of the \(t_1 \rightarrow t_3\) segment
+        is $$T_a\times v_a + T_b\times v_b$$ Therefore, if you want to normalize the stuttering SVs,$$T_a\times
+        v_a + T_b\times v_b = T_a+T_b$$
+      </p>
+      <p>
+        In the form below, fill in the speedup / slowdown speed for \(v_a\) and \(v_b\) as a decimal in \([0.01,10]\),
+        the time duration for \(T_a\) and \(T_b\) in ms if you don't tick the checkbox. If you use both
+        checkboxes, \(T_a\) and \(T_b\) take a decimal in \((0,1)\) and \(T_a+T_b\leq 1\). If you use
+        only one checkbox, I don't know what will happen. You're free to try.
+      </p>
+      <p>
+        Fill \(T_a\) <strong>or</strong> \(T_b\) with -1 to make \(T_a+T_b=t_4-t_1\).
+      </p>
+      <p>
+        Values for some common effects:
       </p>
       <ul style="list-style-type:disc">
-        <li>list of offsets in ascending order, each offset in one line (recommended for simplicity).</li>
-        <li>list of notes, either copied from beatmaps in <i>x,x,x,x,x,x</i> format or from osu! in <i>00:50:000 (x|x,x|x,x|x,...)</i>          format.</li>
-        <li>a special format: <i>"mode, start offset, end offset, parameter"</i> without the quotes where
-          <i>mode</i> is a string "@n" or "@i", again, without the quotes. If <i>mode</i> is "@n", then
-          <i>parameter</i> is the number of stuttering SVs. If <i>mode</i> is "i", then <i>parameter</i>          is the duration of one whole series of stuttering SVs. In other words, \(parameter_n\times
-          parameter_i = end - start\). Be careful with rounding errors caused when you use mode "@i".
-          Mode "@n" is recommended.
-        </li>
+        <li><span class="example" onclick="stutterEg1()">Fast then slow, normalized</span>.</li>
+        <li><span class="example" onclick="stutterEg2()">Slow then fast, normalized</span>.</li>
+        <li><span class="example" onclick="stutterEg3()">Constant stuttering</span>.</li>
+        <li><span class="example" onclick="stutterEg4()">A wild note appear</span>!</li>
+        <li><span class="example" onclick="stutterEg5()">Slow then super fast</span>.</li>
       </ul>
-      <p>
-        Take notice not to put any extra space, new lines, or any invalid characters at the start of your input.
-        Strictly follow the formats given.
-      </p>
-      <textarea id="stutter_input" rows="10" cols="80"></textarea>
+      <form>
+        <div class="table_row">
+          <div class="table_left">\(v_a:\)</div>
+          <div class="table_right"><input type="text" id="stutter_1_v" size="5"></div>
+        </div>
+        <div class="table_row">
+          <div class="table_left">\(T_a:\)</div>
+          <div class="table_right"><input type="text" id="stutter_1_t" size="7"></div>
+        </div>
+        <br/>
+        <div class="table_row">
+          <div class="table_left">Use fraction instead of fixed time duration for \(T_a\)</div>
+          <div class="table_right"><input type="checkbox" id="stutter_1_cb"></div>
+        </div>
+        <br/>
+        <div class="table_row">
+          <div class="table_left">\(v_b:\)</div>
+          <div class="table_right"><input type="text" id="stutter_2_v" size="5"></div>
+        </div>
+        <div class="table_row">
+          <div class="table_left">\(T_b:\)</div>
+          <div class="table_right"><input type="text" id="stutter_2_t" size="7"></div>
+        </div>
+        <br/>
+        <div class="table_row">
+          <div class="table_left">Use fraction instead of fixed time duration for \(T_b\)</div>
+          <div class="table_right"><input type="checkbox" id="stutter_2_cb"></div>
+        </div>
+        <br/>
+        <div class="table_row">
+          <div class="table_left">Overall rate<span class="help" title="Usually 1. 1 will be used if leave blank."><sup>[?]</sup></span>            (optional):</div>
+          <div class="table_right"><input type="text" placeholder="1" id="stutter_0_v" size="7"></div>
+        </div>
+        <br />
+        <div class="table_row">
+          <div class="table_left">Final SV (optional, not affected by scale):</div>
+          <div class="table_right"><input type="text" id="stutter_final_v" size="7"></div>
+        </div>
+        <br />
+        <div class="table_row">
+          <div class="table_left">Other timing point details<span class="help" title="Meter, sample set, sample index, volume, kiai
+          in x,x,x,x,x format. If no input is given,
+          4,2,1,40,0 will be used."><sup>[?]</sup></span> (optional):</div>
+          <div class="table_right"><input type="text" placeholder="4,2,1,40,0" id="stutter_others" size="10"></div>
+        </div>
+        <br />
 
-      <h3>Output</h3>
-      <textarea id="stutter_output" rows="10" cols="80" readonly="readonly"></textarea>
-      <br/>
-      <input type="button" value="Generate stuttering SVs" onclick="execStutteringSVs()">
-    </form>
-    <br />
+        <h4>Offsets input</h4>
+        <div class="table_row">
+          <div class="table_left">Count LN end points as offsets</div>
+          <div class="table_right"><input type="checkbox" id="stutter_ln"></div>
+        </div>
+        <br/>
+        <textarea id="stutter_input" rows="10" cols="80"></textarea>
+
+        <h4>Output</h4>
+        <textarea id="stutter_output" rows="10" cols="80" readonly="readonly"></textarea>
+        <br/>
+        <input type="button" value="Generate stuttering SVs" onclick="execStutteringSVs()">
+      </form>
+      <br />
+    </div>
     <hr/>
     <!-- End of template -->
 
-    <!-- Tool template -->
-    <h3><strong>Generalized SV tool for inherited timing points</strong></h3>
-    <h4>Description</h4>
-    <p>
-      This is the generalized version of stuttering SVs. Instead of fixed value, you will provide your own
-      rules for <i>each</i> and <i>every single</i> value needed to create an inherited timing
-      point. This tool is very similar to zardoru's <i>Arbitrary math function for cyclical SV</i> tool.
-      All of your rules need to be written in javascript. You can see some maths stuff you can do with
-      javascript <a class="example" href="https://www.w3schools.com/jsref/jsref_obj_math.asp">here</a>.
-      It's not hard to use! Also please ensure that all functions have a valid return value on the time
-      domain.
-    </p>
+    <!-- Rectangular switch -->
     <form>
-      <h4>SV rules in one SV cycle</h4>
-      <p>
-        A function that takes in one arguments: the duration of a cycle, and returns a 2D array of size 2xn where
-        each element in the array is an array of size 2, the first element being the offset of the timing
-        point, the second element being the SV speed in \([0.01,10]\).
-      </p>
-      <textarea id="general_inherited_cycle" rows="10" cols="80" tabindex="-1">(function(duration){
+      <h3>Advanced features</h3>
+      <div class="table_row">
+        <label class="switch"><input type="checkbox"><span class="slider" id="slider1"></span></label>
+      </div>
+    </form>
+    <br />
+    <hr />
+    <div class=".hideable-container advanced" id="advanced1">
+      <!-- Tool template -->
+      <h3 class="toggle-header" onclick="$('#general-inherit').slideToggle('slow');"><strong>Generalized SV tool for inherited timing points</strong></h3>
+      <div class="hideable-container" id="general-inherit">
+        <h4>Description</h4>
+        <p>
+          This is the generalized version of stuttering SVs. Instead of fixed value, you will provide your own
+          rules for <i>each</i> and <i>every single</i> value needed to create an inherited
+          timing point. This tool is very similar to zardoru's <i>Arbitrary math function for cyclical SV</i>          tool. All of your rules need to be written in javascript. You can see some maths stuff you
+          can do with javascript
+          <a class="example" href="https://www.w3schools.com/jsref/jsref_obj_math.asp">here</a>. It's
+          not hard to use! Also please ensure that all functions have a valid return value on the time
+          domain. That means if you don't know what to do with a box, leave it as an empty box will mess
+          up everything!
+        </p>
+        <form>
+          <h4>SV rules in one SV cycle</h4>
+          <p>
+            A function that takes in one arguments: the duration of a cycle, and returns an array of size n where
+            each element in the array is an array of size 2, the first element being the offset of the
+            timing point, the second element being the SV speed in \([0.01,10]\). Below are some examples:
+          </p>
+          <ul style="list-style-type:disc">
+            <li><span class="example" onclick="generalInheritedEg1()">Fast then slow, normalized</span>.</li>
+            <li><span class="example" onclick="generalInheritedEg2()">Slow then fast, normalized</span>.</li>
+            <li><span class="example" onclick="generalInheritedEg3()">Constant stuttering but it gets faster over time</span>.</li>
+            <li><span class="example" onclick="generalInheritedEg4()">Notes teleporting in but they go closer to the judgment line over time</span>.</li>
+            <li><span class="example" onclick="generalInheritedEg5()">Slow then super fast</span>.</li>
+          </ul>
+          <textarea id="general_inherited_cycle" rows="10" cols="80" tabindex="-1">(function(duration){
   var timingPoints = new Array(10);     // Create new array
   for (var i = 0; i < 10; i++) {        // Add 10 items
     // Will create these speed: 1.5 0.5 1.6 0.4 and so on at 1/10 interval
-      if (i % 2 == 0) {
-        timingPoints[i] = [i * duration / 10, 1.5 + i / 20];
-      } else {
-        timingPoints[i] = [i * duration / 10, 2 - timingPoints[i - 1][1]];
-      }
+    if (i % 2 == 0) {
+      timingPoints[i] = [i * duration / 10, 1.5 + i / 20];
+    } else {
+      timingPoints[i] = [i * duration / 10, 2 - timingPoints[i - 1][1]];
     }
+  }
   return timingPoints;  // Return the array
 })</textarea>
+          <h4 class="toggle-header" onclick="$('#general-inherit-extra').slideToggle('slow');">Extra parameters</h4>
+          <div class="hideable-container" id="general-inherit-extra">
+            <p>
+              <strong>It's likely you have no need for all the extra parameters. Click the above header, that "Extra parameters" text to hide everything inside or click the header of each part to hide/show only that parameter.</strong>
+            </p>
+            <p>
+              Any function from this point down has the same formats: takes in two arguments and returns the value
+              of whatever the name of the function is. The two arguments are offset <strong>from the first timing point given</strong>              and the duration of the whole segment that you're gonna create SVs for (in other words,
+              the difference between the first and the last timing points given). Both arguments are
+              in ms. The
+              <i>time</i> parameter is in \([0,duration)\).
+            </p>
+            <p>
+              Let's call \(f(t)\) the value returned by a function \(f\) at time \(t\). If you tick the checkbox "Use
+              only one value for a cycle", all timing points in one cycle will use \(f(t_i)\) where \(t_i\)
+              is the start of the i-th cycle. Else, each timing point at time \(t\) will use a separate
+              value \(f(t)\).
+            </p>
 
-      <p>
-        Any function from this point down has the same formats: takes in two arguments and returns the value
-        of whatever the name of the function is. The two arguments are time and the duration of the whole
-        segment that you're gonna create SVs for (in other words, the difference between the first and
-        the last timing points). Both arguments are in ms. The <i>time</i> parameter is in \([0,duration)\).
-      </p>
-      <p>
-        Let's call \(f(t)\) the value returned by a function \(f\) at time \(t\). If you tick the checkbox "Use
-        only one value for a cycle", all timing points in one cycle will use \(f(t_i)\) where \(t_i\)
-        is the start of the i-th cycle. Else, each timing point at time \(t\) will use a separate value
-        \(f(t)\).
-      </p>
+            <h4 class="toggle-header" onclick="$('#general-inherit-scale').slideToggle('slow');">SV scale</h4>
+            <div class="hideable-container" id="general-inherit-scale">
 
-      <h4>SV scale</h4>
-      <p>
-        All timing points will be scaled by this rate. Useful when you want to make, let's say, the whole segment
-        gradually faster while keeping some SV effects.
-      </p>
-      <textarea id="general_inherited_scale" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+              <p>
+                All timing points will be scaled by this rate. Useful when you want to make, let's say, the whole segment
+                gradually faster.
+              </p>
+              <textarea id="general_inherited_scale" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 1;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_scale_cb"></div>
-      </div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_scale_cb"></div>
+              </div>
+            </div>
 
-      <h4>Meter</h4>
-      <textarea id="general_inherited_meter" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+            <h4 class="toggle-header" onclick="$('#general-inherit-meter').slideToggle('slow');">Meter</h4>
+            <div class="hideable-container" id="general-inherit-meter">
+              <p>
+                Return an integer. Read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+                  target="blank">here</a> for more info.
+              </p>
+              <textarea id="general_inherited_meter" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 4;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_meter_cb"></div>
-      </div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_meter_cb"></div>
+              </div>
+            </div>
 
-      <h4>Sample set</h4>
-      <textarea id="general_inherited_sset" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+            <h4 class="toggle-header" onclick="$('#general-inherit-sset').slideToggle('slow');">Sample set</h4>
+            <div class="hideable-container" id="general-inherit-sset">
+              <p>
+                Return an integer. Read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+                  target="blank">here</a> for more info.
+              </p>
+              <textarea id="general_inherited_sset" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 2;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_sset_cb"></div>
-      </div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_sset_cb"></div>
+              </div>
+            </div>
 
-      <h4>Sample index</h4>
-      <textarea id="general_inherited_sidx" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+            <h4 class="toggle-header" onclick="$('#general-inherit-sidx').slideToggle('slow');">Sample index</h4>
+            <div class="hideable-container" id="general-inherit-sidx">
+              <p>
+                Return an integer. Read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+                  target="blank">here</a> for more info.
+              </p>
+              <textarea id="general_inherited_sidx" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 1;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_sidx_cb"></div>
-      </div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_sidx_cb"></div>
+              </div>
+            </div>
 
-      <h4>Volume</h4>
-      <textarea id="general_inherited_vol" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+            <h4 class="toggle-header" onclick="$('#general-inherit-vol').slideToggle('slow');">Volume</h4>
+            <div class="hideable-container" id="general-inherit-vol">
+              <p>
+                Return an integer. Read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+                  target="blank">here</a> for more info.
+              </p>
+              <textarea id="general_inherited_vol" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 40;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_vol_cb"></div>
-      </div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_vol_cb"></div>
+              </div>
+            </div>
 
-      <h4>Kiai</h4>
-      <textarea id="general_inherited_kiai" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+            <h4 class="toggle-header" onclick="$('#general-inherit-kiai').slideToggle('slow');">Kiai</h4>
+            <div class="hideable-container" id="general-inherit-kiai">
+              <p>
+                Return 0 or 1. Read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+                  target="blank">here</a> for more info.
+              </p>
+              <textarea id="general_inherited_kiai" rows="10" cols="80" tabindex="-1">(function(time, duration) {
         return 0;
 })</textarea>
-      <br />
-      <div class="table_row">
-        <div class="table_left">Use only one value for a cycle:</div>
-        <div class="table_right"><input type="checkbox" id="general_inherited_kiai_cb"></div>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_inherited_kiai_cb"></div>
+              </div>
+            </div>
+
+            <br/>
+          </div>
+
+          <div class="table_row">
+            <div class="table_left">Final SV (optional, not affected by scale):</div>
+            <div class="table_right"><input type="text" id="general_inherited_final" size="7"></div>
+          </div>
+          <br />
+
+          <h4>Offsets input</h4>
+          <div class="table_row">
+            <div class="table_left">Count LN end points as offsets</div>
+            <div class="table_right"><input type="checkbox" id="general_inherited_ln"></div>
+          </div>
+          <br/>
+          <textarea id="general_inherited_input" rows="10" cols="80"></textarea>
+
+          <h4>Output</h4>
+          <textarea id="general_inherited_output" rows="10" cols="80" readonly="readonly"></textarea>
+          <br/>
+          <input type="button" value="Generate SVs" onclick="execInheritedSvs()">
+        </form>
+        <br />
       </div>
-      <br/>
+      <hr/>
+      <!-- End of template -->
+    </div>
 
-      <div class="table_row">
-        <div class="table_left">Final SV (optional):</div>
-        <div class="table_right"><input type="text" id="general_inherited_final" size="7"></div>
-      </div>
-      <br />
 
-      <h3>Input</h3>
-      <div class="table_row">
-        Same as <strong>stuttering SVs</strong> input box, 3 valid formats.
-      </div>
-      <br />
-      <textarea id="general_inherited_input" rows="10" cols="80"></textarea>
-
-      <h3>Output</h3>
-      <textarea id="general_inherited_output" rows="10" cols="80" readonly="readonly"></textarea>
-      <br/>
-      <input type="button" value="Generate SVs" onclick="execInheritedSvs()">
-    </form>
-    <br />
-    <hr/>
-    <!-- End of template -->
-
-    <!-- Tool template -->
-    <h3><strong>Tool name</strong></h3>
-    <h4>Description</h4>
-    <p>Some description here</p>
+    <!-- Rectangular switch -->
     <form>
+      <h3>Even more advanced features</h3>
       <div class="table_row">
-        <div class="table_left">Option 1:</div>
-        <div class="table_right"><input type="text" id="idt1"></div>
+        <label class="switch"><input type="checkbox"><span class="slider" id="slider2"></span></label>
       </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">Option 2:</div>
-        <div class="table_right"><input type="text" id="idt2"></div>
-      </div>
-      <br/>
-      <div class="table_row">
-        <div class="table_left">Checkbox option:</div>
-        <div class="table_right"><input type="checkbox" id="idcb1"></div>
-      </div>
-
-      <h3>Big text input</h3>
-      <textarea id="bigtext1" rows="10" cols="80"></textarea>
-
-      <h3>Output</h3>
-      <textarea id="output" rows="10" cols="80" readonly="readonly"></textarea>
-      <br/>
-      <input type="button" value="executebtn" onclick="execjs()">
     </form>
     <br />
-    <hr/>
-    <!-- End of template -->
+    <hr />
+    <div class=".hideable-container advanced" id="advanced2">
+      <!-- Tool template -->
+      <h4>More technical stuff</h4>
+      <p>
+        The tools here might or might not work as I myself don't really understand uninherited timing points.
+      </p>
+      <p>
+        Before we start, let's take a look at this formulae: $$\frac {4.375 \times slider\_velocity \times scroll\_speed
+        \times osu\_height}{main\_bpm}$$ This is the apparent length of a beat, measured in pixels. Assume
+        the slider velocity to be 1, then a beat because one beatmap can only have one main BPM. Why
+        does this matter? A barline appears at every <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+          target="blank">measure</a>. Also, a new uninherited timing point creates a barline <i>except</i>        when it's less than 2ms apart from the last uninherited timing point<span class="help" title="Feel free to correct me. I don't know if this is always true."><sup>[?]</sup></span>.
+        Knowing the formulae, therefore, allows you to calculate exactly where you want a new barline
+        to be.
+      </p>
+      <p>
+        A common technique with uninherited timing points is to put a long 0 BPM segment followed by a high BPM
+        segment to create visual effects. Try using the below SV to see what happens.
+      </p>
+      <form>
+        <textarea class="example-text" rows="4" cols="35" readonly>2000,1000000000000000,1,2,1,40,1,0
+40000,0.01,1,2,1,40,1,0
+40000,-1000,1,2,1,40,0,0
+40002,333.333754095629,1,2,1,40,1,0</textarea>
+      </form>
+      <p>
+        One thing that you need pay extra caution to is that any segment of high BPM, about 6 million BPM, even
+        if very short, can easily freeze osu!, especially if you open it in Editor Mode. Even if it doesn't,
+        you will be stucked with very high RAM usage by osu! until you reset the game.
+        <a href="https://osu.ppy.sh/s/681900" target="blank">This map in particular cleared my osu settings for some unknown reasons.</a>
+      </p>
+      <hr />
 
-  </div>
-  Special thanks to <a href="https://github.com/zardoru">zardoru</a> and <a href="https://github.com/zardoru/sv-tools/">SV changes tools</a>  as this project was inspired by their tools.
+      <!-- Tool template -->
+      <h3 class="toggle-header" onclick="$('#general-uninherit').slideToggle('slow');"><strong>Generalized SV tool for uninherited timing points</strong></h3>
+      <div class="hideable-container" id="general-uninherit">
+        <h4>Description</h4>
+        <p>
+          Exactly the same as <strong>Generalized SV tool for inherited timing points</strong>. The only
+          new thing is now a main tempo has to be declared.
+        </p>
+        <form>
+          <h4>SV rules in one SV cycle</h4>
+          <p>
+            Some examples:
+          </p>
+          <ul style="list-style-type:disc">
+            <li><span class="example" onclick="generalUninheritedEg1()">Make it rain barlines</span>.</li>
+            <li><span class="example" onclick="generalUninheritedEg2()">Make barlines fly to the beat</span>.</li>
+          </ul>
+          <textarea id="general_uninherited_cycle" rows="10" cols="80" tabindex="-1">(function(duration){
+var timingPoints = new Array(10);     // Create new array
+for (var i = 0; i < 10; i++) {        // Add 10 items
+  // Will create these speed: 1.5 0.5 1.6 0.4 and so on at 1/10 interval
+  if (i % 2 == 0) {
+    timingPoints[i] = [i * duration / 10, 1.5 + i / 20];
+  } else {
+    timingPoints[i] = [i * duration / 10, 2 - timingPoints[i - 1][1]];
+  }
+}
+return timingPoints;  // Return the array
+})</textarea>
+          <h4 class="toggle-header" onclick="$('#general-uninherit-extra').slideToggle('slow');">Extra parameters</h4>
+          <div class="hideable-container" id="general-uninherit-extra">
+            <h4 class="toggle-header" onclick="$('#general-uninherit-scale').slideToggle('slow');">SV scale</h4>
+            <div class="hideable-container" id="general-uninherit-scale">
+              <textarea id="general_uninherited_scale" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+              return 1;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_scale_cb"></div>
+              </div>
+            </div>
+
+            <h4 class="toggle-header" onclick="$('#general-uninherit-meter').slideToggle('slow');">Meter</h4>
+            <div class="hideable-container" id="general-uninherit-meter">
+              <textarea id="general_uninherited_meter" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+      return 4;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_meter_cb"></div>
+              </div>
+            </div>
+
+            <h4 class="toggle-header" onclick="$('#general-uninherit-sset').slideToggle('slow');">Sample set</h4>
+            <div class="hideable-container" id="general-uninherit-sset">
+              <textarea id="general_uninherited_sset" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+      return 2;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_sset_cb"></div>
+              </div>
+            </div>
+
+            <h4 class="toggle-header" onclick="$('#general-uninherit-sidx').slideToggle('slow');">Sample index</h4>
+            <div class="hideable-container" id="general-uninherit-sidx">
+              <textarea id="general_uninherited_sidx" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+      return 1;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_sidx_cb"></div>
+              </div>
+            </div>
+
+            <h4 class="toggle-header" onclick="$('#general-uninherit-vol').slideToggle('slow');">Volume</h4>
+            <div class="hideable-container" id="general-uninherit-vol">
+              <textarea id="general_uninherited_vol" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+      return 40;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_vol_cb"></div>
+              </div>
+            </div>
+
+            <h4 class="toggle-header" onclick="$('#general-uninherit-kiai').slideToggle('slow');">Kiai</h4>
+            <div class="hideable-container" id="general-uninherit-kiai">
+              <textarea id="general_uninherited_kiai" rows="10" cols="80" tabindex="-1">(function(time, duration) {
+      return 0;
+})</textarea>
+              <br />
+              <div class="table_row">
+                <div class="table_left">Use only one value for a cycle:</div>
+                <div class="table_right"><input type="checkbox" id="general_uninherited_kiai_cb"></div>
+              </div>
+            </div>
+
+            <br/>
+          </div>
+
+          <div class="table_row">
+            <div class="table_left">Main BPM:</div>
+            <div class="table_right"><input type="text" id="general_uninherited_main" size="7"></div>
+          </div>
+          <br />
+
+          <div class="table_row">
+            <div class="table_left">Final SV (optional but recommended to put 1 here<span class="help" title="An unclosed timing point is deadly here
+              so at least put an 1 if you don't know what to put."><sup>[?]</sup></span>):</div>
+            <div class="table_right"><input type="text" id="general_uninherited_final" size="7"></div>
+          </div>
+          <br />
+
+          <h4>Offsets input</h4>
+          <div class="table_row">
+            <div class="table_left">Count LN end points as offsets</div>
+            <div class="table_right"><input type="checkbox" id="general_uninherited_ln"></div>
+          </div>
+          <br/>
+          <textarea id="general_uninherited_input" rows="10" cols="80"></textarea>
+
+          <h4>Output</h4>
+          <textarea id="general_uninherited_output" rows="10" cols="80" readonly="readonly"></textarea>
+          <br/>
+          <input type="button" value="Generate SVs" onclick="execUninheritedSvs()">
+        </form>
+        <br />
+      </div>
+      <hr/>
+      <!-- End of template -->
+
+      <!-- Tool template -->
+      <h3 class="toggle-header" onclick="$('#general-ultimate').slideToggle('slow');"><strong>Ultimate SV tool</strong></h3>
+      <div class="hideable-container" id="general-ultimate">
+        <h4>Description</h4>
+        <p>
+          You now have complete control over what to return, what not. My role is only to provide you with the
+          list of offsets and a format for you to create timing points.
+        </p>
+        <form>
+          <h4>SV rules</h4>
+          <p>
+            A function that takes in two arguments: the list of offsets and the main BPM, returns a list of TimingPoint
+            objects. The list of offsets is, as you might be familliar with already, an array of float.
+            You can create a TimingPoint object by calling
+          </p>
+          <textarea rows="2" cols="80" readonly>new TimingPoint(offset, speed, meter, sample set, sample index, volume, inheritance, kiai)</textarea>
+          <p>You can put in <i>null</i> for any parameters you don't need and it will automatically use
+            a default value.</p>
+          <p>
+            Please read <a href="https://osu.ppy.sh/help/wiki/osu!_File_Formats/Osu_(file_format)#timing-points"
+              target="blank">the wiki</a> to understand which parameter does what work. Though I doubt
+            you need to do so once you're here. Some examples:
+          </p>
+          <ul style="list-style-type:disc">
+            <li><span class="example" onclick="generalUltimateEg1()">Example 1</span>.</li>
+            <li><span class="example" onclick="generalUltimateEg2()">Example 2</span>.</li>
+            <li><span class="example" onclick="generalUltimateEg3()">Example 3</span>.</li>
+            <li><span class="example" onclick="generalUltimateEg4()">Example 4</span>.</li>
+            <li><span class="example" onclick="generalUltimateEg5()">Example 5 (computationally heavy)</span>.</li>
+          </ul>
+          <textarea id="general_ultimate_rule" rows="10" cols="80" tabindex="-1">(function(offsetsArr, mainBpm) {
+  var result = [];
+  for (var i = 0, len = offsetsArr.length; i < len - 1; i++) {
+    result.push(new TimingPoint(offsetsArr[i],0.01,1,null,null,null,1,null));
+    result.push(new TimingPoint(offsetsArr[i],-1000,1,null,null,null,0,null));
+    result.push(new TimingPoint(offsetsArr[i]+2,1000000000,4,null,null,null,1,null));
+  }
+  // Remember to push the final SV as you won't want an unclosed 1000000000 BPM timing point
+  result.push(new TimingPoint(offsetsArr[len-1],60000/mainBpm,4,null,null,null,1,null));
+  return result;
+})</textarea>
+          <br/>
+
+
+          <div class="table_row">
+            <div class="table_left">Main BPM:</div>
+            <div class="table_right"><input type="text" id="general_ultimate_main" size="7"></div>
+          </div>
+          <br />
+
+          <h4>Offsets input</h4>
+          <div class="table_row">
+            <div class="table_left">Count LN end points as offsets</div>
+            <div class="table_right"><input type="checkbox" id="general_ultimate_ln"></div>
+          </div>
+          <br/>
+          <textarea id="general_ultimate_input" rows="10" cols="80"></textarea>
+
+          <h4>Output</h4>
+          <textarea id="general_ultimate_output" rows="10" cols="80" readonly="readonly"></textarea>
+          <br/>
+          <input type="button" value="Generate SVs" onclick="execUltimateSvs()">
+        </form>
+        <br />
+      </div>
+      <hr/>
+      <!-- End of template -->
+    </div>
+
+
+  </div> Author: Влади́мир Пу́тин
+  <br /> Special thanks to <a href="https://github.com/zardoru">zardoru</a> and <a href="https://github.com/zardoru/sv-tools/">SV changes tools</a>  as this project was inspired by their tools.
   <br /> Font generated by
   <a href="http://www.flaticon.com">flaticon.com</a>. Under
   <a href="http://creativecommons.org/licenses/by/3.0/">CC</a>:
