@@ -52,7 +52,7 @@ outputField.val(output);outputField.select()}
 function nmlize(){var inputs=$("#norm_in").val();var lines=inputs.split("\n");var outputField=$("#norm_out");var timingPointObjArr=[];var output="";for(var i=0,len=lines.length;i<len;i++){var curTimingPoint=TimingPoint.parseTimingPoint(lines[i]);if(curTimingPoint.inherited===1){timingPointObjArr.push(curTimingPoint);output+=lines[i]+"\n"}}
 var mainBpm;var normalizationBpmField=$('#norm_bpm');if(normalizationBpmField.val()!=""){mainBpm=parseFloat(normalizationBpmField.val())}else{var max=-1;for(var i=0,len=timingPointObjArr.length-1;i<len;i++){if(max<=timingPointObjArr[i+1].offset-timingPointObjArr[i].offset){max=timingPointObjArr[i+1].offset-timingPointObjArr[i].offset;mainBpm=60000/timingPointObjArr[i].speed}}
 normalizationBpmField.val(mainBpm)}
-for(var i=0,len=timingPointObjArr.length;i<len;i++){var msPerBeat=60000/timingPointObjArr[i].speed;var ratio=msPerBeat/mainBpm;timingPointObjArr[i].speed=-100/ratio;timingPointObjArr[i].inherited=0;output+=timingPointObjArr[i]+"\n"}
+for(var i=0,len=timingPointObjArr.length;i<len;i++){var msPerBeat=60000/timingPointObjArr[i].speed;var ratio=mainBpm/msPerBeat;timingPointObjArr[i].speed=-100/ratio;timingPointObjArr[i].inherited=0;output+=timingPointObjArr[i]+"\n"}
 outputField.val(output);outputField.select()}
 function copySvs(){var svLines=$("#copier_svs").val().split("\n");var tpObjInput=[];for(var i=0,len=svLines.length;i<len;i++){var curTp=TimingPoint.parseTimingPoint(svLines[i]);if(curTp!=undefined){tpObjInput.push(curTp)}}
 var startOffset=tpObjInput[0].offset;var lenI=tpObjInput.length;var stringArrWithoutOffset=new Array(lenI);for(var i=0;i<lenI;i++){tpObjInput[i].offset-=startOffset;stringArrWithoutOffset[i]=tpObjInput[i].toStringWithoutOffset()}
