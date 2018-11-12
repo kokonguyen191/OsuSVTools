@@ -69,7 +69,7 @@ function nmlize() {
 	// Now that we've got the mainBpm, let's normalize
 	for (var i = 0, len = timingPointObjArr.length; i < len; i++) {
 		var msPerBeat = 60000 / timingPointObjArr[i].speed;
-		var ratio = msPerBeat / mainBpm;
+		var ratio =  mainBpm / msPerBeat;
 		timingPointObjArr[i].speed = -100 / ratio;
 		timingPointObjArr[i].inherited = 0;
 		output += timingPointObjArr[i] + "\n";
